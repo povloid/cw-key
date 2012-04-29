@@ -277,6 +277,23 @@ int main(void) {
 						XGetInputFocus(display, &focusWin, &iReverToReturn);
 						printf("WindowID %x Key: %s\n", focusWin, szKeyString);
 
+						XkbDescPtr keyboard = XkbGetKeyboard(display,
+								XkbAllComponentsMask, XkbUseCoreKbd);
+
+						XkbStateRec state;
+						XkbGetState(display, XkbUseCoreKbd, &state);
+
+						unsigned int group = (unsigned int) state.group;
+						std::cout << group << std::endl;
+
+						std::string s1 = XGetAtomName(display,
+								keyboard->names->symbols);
+						std::string s2 = XGetAtomName(display,
+								keyboard->names->groups[group]);
+						;
+
+						std::cout << s1 << " - " << s2 << std::endl;
+
 						InputChar ic;
 						ic.skanCode = iKeyCode;
 						mt->add(ic);
