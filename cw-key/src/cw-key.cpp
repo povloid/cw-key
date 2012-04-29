@@ -8,8 +8,10 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <pthread.h>
+using namespace std;
 
 /**
  * Поток - базовое описание
@@ -44,8 +46,28 @@ typedef std::auto_ptr<Thread> ThreadPtr;
 // Morse Thread -----------------------------------------------------------------------------------------------------------------------
 
 class MorseThread: public Thread {
+private:
+
+	map<int, char*> m;
+
 public:
+
+	MorseThread() {
+		m[2] = (char*) ".----";
+		m[3] = (char*) "..---";
+		m[4] = (char*) "...--";
+		m[5] = (char*) "....-";
+		m[6] = (char*) ".....";
+		m[7] = (char*) "-....";
+		m[8] = (char*) "--...";
+		m[9] = (char*) "---..";
+		m[10] = (char*) "----.";
+		m[11] = (char*) "-----";
+
+	}
+
 	void run() {
+
 		for (int i = 0; i < 20; i++, sleep(1))
 			std::cout << "a  " << std::endl;
 	}
@@ -84,11 +106,6 @@ int main(void) {
 	ThreadPtr mt(new MorseThread());
 
 	mt->start();
-
-
-
-
-
 
 	//mt->wait();
 
