@@ -106,16 +106,6 @@ public:
 		m[10] = (char*) "----.";
 		m[11] = (char*) "-----";
 
-		// Test
-
-		for (int i = 0; i < 10; i++) {
-			InputChar ic;
-			ic.skanCode = 8;
-			add(ic);
-
-			ic.skanCode = 4;
-			add(ic);
-		}
 	}
 
 	void add(InputChar ic) {
@@ -242,11 +232,25 @@ int main(void) {
 //	if (a->wait() != 0 || b->wait() != 0)
 //		return EXIT_FAILURE;
 
-	ThreadPtr mt(new MorseThread());
+	MorseThread* mt = new MorseThread();
+	ThreadPtr pmt(mt);
+	// Test
 
-	mt->start();
+	for (int i = 0; i < 10; i++) {
+		InputChar ic;
+		ic.skanCode = 8;
+		mt->add(ic);
 
-	mt->wait();
+		ic.skanCode = 4;
+		mt->add(ic);
+	}
+
+	pmt->start();
+
+
+
+
+	pmt->wait();
 
 	return EXIT_SUCCESS;
 }
