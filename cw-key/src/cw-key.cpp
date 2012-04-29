@@ -76,6 +76,7 @@ snd_pcm_sframes_t frames;
 struct InputChar {
 public:
 	int skanCode;
+	int layout;
 };
 
 class MorseThread: public Thread {
@@ -114,6 +115,75 @@ public:
 		m[17] = (char*) "---..";
 		m[18] = (char*) "----.";
 		m[19] = (char*) "-----";
+
+
+		m[24] = (char*) "--.-"; // q
+		m[25] = (char*) ".--"; // w
+		m[26] = (char*) "."; // e
+		m[27] = (char*) ".-."; // r
+		m[28] = (char*) "-"; // t
+		m[29] = (char*) "-.--"; // y
+		m[30] = (char*) "..-"; // u
+		m[31] = (char*) ".."; // i
+		m[32] = (char*) "---"; // o
+		m[33] = (char*) ".--."; // p
+
+		m[38] = (char*) ".-"; // a
+		m[39] = (char*) "..."; // s
+		m[40] = (char*) "-.-"; // d
+		m[41] = (char*) "..-."; // f
+		m[42] = (char*) "--."; // g
+		m[43] = (char*) "...."; // h
+		m[44] = (char*) ".--."; // j
+		m[45] = (char*) "-.-"; // k
+		m[46] = (char*) ".-.."; // l
+
+		m[52] = (char*) "--.."; // z
+		m[53] = (char*) "-..-"; // x
+		m[54] = (char*) "-.-."; // c
+		m[55] = (char*) "...-"; // v
+		m[56] = (char*) "-..."; // b
+		m[57] = (char*) "-."; // n
+		m[58] = (char*) "--"; // m
+
+		// Буквы ru
+		m[1024] = (char*) ".---"; // й
+		m[1025] = (char*) "-.-."; // ц
+		m[1026] = (char*) "..-"; // у
+		m[1027] = (char*) "-.-"; // к
+		m[1028] = (char*) "."; // е
+		m[1029] = (char*) "-."; // н
+		m[1030] = (char*) "--."; // г
+		m[1031] = (char*) "----"; // ш
+		m[1032] = (char*) "--.-"; // щ
+		m[1033] = (char*) "--.."; // з
+
+		m[1034] = (char*) "...."; // х
+		m[1035] = (char*) ".--.-."; // ъ
+
+		m[1038] = (char*) "..-."; // ф
+		m[1039] = (char*) "-.--"; // ы
+		m[1040] = (char*) ".--"; // в
+		m[1041] = (char*) ".-"; // а
+		m[1042] = (char*) ".--."; // п
+		m[1043] = (char*) ".-."; // р
+		m[1044] = (char*) "---"; // о
+		m[1045] = (char*) "..-."; // л
+		m[1046] = (char*) "-.."; // д
+
+		m[1047] = (char*) "...-"; // ж
+		m[1048] = (char*) "...-..."; //э
+
+		m[1052] = (char*) ".-.-"; // я
+		m[1053] = (char*) "---."; // ч
+		m[1054] = (char*) "..."; // с
+		m[1055] = (char*) "--"; // м
+		m[1056] = (char*) ".."; // и
+		m[1057] = (char*) "-"; // т
+		m[1058] = (char*) "-..-"; // ь
+
+		m[1059] = (char*) "-..."; // б
+		m[1060] = (char*) "..-"; // ю
 
 	}
 
@@ -175,7 +245,14 @@ public:
 		for (;;) {
 			while (!qinput.empty()) {
 
-				int sk = qinput.front().skanCode;
+				InputChar ic = qinput.front();
+
+				int sk = ic.skanCode;
+				int ly = ic.layout;
+
+				if(ly != 0)
+					sk += 1000;
+
 				char* simbol = m[sk];
 
 				unsigned long ptr = (unsigned long) simbol;
@@ -292,10 +369,11 @@ int main(void) {
 								keyboard->names->groups[group]);
 						;
 
-						std::cout << s1 << " - " << s2 << std::endl;
+						std::cout<<iKeyCode<<"--"<< s1 << " - " << s2 << std::endl;
 
 						InputChar ic;
 						ic.skanCode = iKeyCode;
+						ic.layout = group;
 						mt->add(ic);
 
 					}
@@ -304,6 +382,7 @@ int main(void) {
 			}
 		}
 		memcpy(szKeyOld, szKey, 32);
+		usleep(10000);
 	}
 	XCloseDisplay(display);
 
