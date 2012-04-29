@@ -9,9 +9,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
-
 #include <pthread.h>
 
+/**
+ * Поток - базовое описание
+ */
 class Thread {
 private:
 	pthread_t thread;
@@ -39,31 +41,56 @@ public:
 
 typedef std::auto_ptr<Thread> ThreadPtr;
 
+// Morse Thread -----------------------------------------------------------------------------------------------------------------------
+
+class MorseThread: public Thread {
+public:
+	void run() {
+		for (int i = 0; i < 20; i++, sleep(1))
+			std::cout << "a  " << std::endl;
+	}
+};
+
+/**
+ * MAIN -------------------------------------------------------------------------------------------------------------------------------
+ */
 int main(void) {
-	class Thread_a: public Thread {
-	public:
-		void run() {
-			for (int i = 0; i < 20; i++, sleep(1))
-				std::cout << "a  " << std::endl;
-		}
-	};
 
-	class Thread_b: public Thread {
-	public:
-		void run() {
-			for (int i = 0; i < 20; i++, sleep(1))
-				std::cout << "  b" << std::endl;
-		}
-	};
+//	class Thread_a: public Thread {
+//	public:
+//		void run() {
+//			for (int i = 0; i < 20; i++, sleep(1))
+//				std::cout << "a  " << std::endl;
+//		}
+//	};
+//
+//	class Thread_b: public Thread {
+//	public:
+//		void run() {
+//			for (int i = 0; i < 20; i++, sleep(1))
+//				std::cout << "  b" << std::endl;
+//		}
+//	};
+//
+//	ThreadPtr a(new Thread_a());
+//	ThreadPtr b(new Thread_b());
+//
+//	if (a->start() != 0 || b->start() != 0)
+//		return EXIT_FAILURE;
+//
+//	if (a->wait() != 0 || b->wait() != 0)
+//		return EXIT_FAILURE;
 
-	ThreadPtr a(new Thread_a());
-	ThreadPtr b(new Thread_b());
+	ThreadPtr mt(new MorseThread());
 
-	if (a->start() != 0 || b->start() != 0)
-		return EXIT_FAILURE;
+	mt->start();
 
-	if (a->wait() != 0 || b->wait() != 0)
-		return EXIT_FAILURE;
+
+
+
+
+
+	//mt->wait();
 
 	return EXIT_SUCCESS;
 }
