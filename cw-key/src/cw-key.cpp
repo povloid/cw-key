@@ -58,7 +58,7 @@ typedef std::auto_ptr<Thread> ThreadPtr;
 
 // Morse Thread -----------------------------------------------------------------------------------------------------------------------
 
-const int ditLong = 2;
+const int ditLong = 1;
 const int dashLong = 4;
 
 const int ditDashLong = 1;
@@ -146,6 +146,12 @@ public:
 		m[57] = (char*) "-."; // n
 		m[58] = (char*) "--"; // m
 
+		m[59] = (char*) ".-.-.-"; // ,
+		m[60] = (char*) "......"; // .
+		m[61] = (char*) "-..-."; // /
+
+
+
 		// Буквы ru
 		m[1024] = (char*) ".---"; // й
 		m[1025] = (char*) "-.-."; // ц
@@ -184,6 +190,8 @@ public:
 
 		m[1059] = (char*) "-..."; // б
 		m[1060] = (char*) "..-"; // ю
+
+		m[1061] = (char*) "......"; // .
 
 	}
 
