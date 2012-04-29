@@ -11,8 +11,8 @@
 #include <map>
 #include <memory>
 #include <pthread.h>
- #include <alsa/asoundlib.h>
- #include <math.h>
+#include <alsa/asoundlib.h>
+#include <math.h>
 using namespace std;
 
 /**
@@ -54,8 +54,12 @@ const int ditDashLong = 1;
 const int charLong = 4;
 const int wordLong = 7;
 
+const float AMPLITUDE = 10000;
+
 char* device = (char*) "default"; /* playback device */
 snd_output_t *output = NULL;
+snd_pcm_t *handle;
+snd_pcm_sframes_t frames;
 
 class MorseThread: public Thread {
 private:
@@ -68,9 +72,8 @@ private:
 	unsigned short bufferCharPause[16 * 1024 * charLong];
 	unsigned short bufferWordPause[16 * 1024 * wordLong];
 
-
-	void setAll0(unsigned short b[]){
-		for(unsigned int i = 0; i < sizeof(b)/ 2; i++){
+	void setAll0(unsigned short b[]) {
+		for (unsigned int i = 0; i < sizeof(b) / 2; i++) {
 			b[i] = 0;
 		}
 	}
@@ -81,7 +84,6 @@ public:
 		setAll0(bufferDitDashPause);
 		setAll0(bufferCharPause);
 		setAll0(bufferWordPause);
-
 
 		m[2] = (char*) ".----";
 		m[3] = (char*) "..---";
@@ -97,8 +99,74 @@ public:
 
 	void run() {
 
-		for (int i = 0; i < 20; i++, sleep(1))
-			std::cout << "a  " << std::endl;
+		int err;
+
+
+		//for (int i = 0; i < 20; i++, sleep(1))
+		//	std::cout << "a  " << std::endl;
+
+		float amplitude = 0;
+		int p = 0;
+		int s = sizeof(bufferDit) / 2;
+
+		for (int i = 0; i < s; i++) {
+			if (amplitude < AMPLITUDE && i < (s - p)) {
+				amplitude += 100;
+				p = i;
+			} else if (i > (s - p - 20) && amplitude > 0) {
+				amplitude -= 100;
+			}
+
+			bufferDit[i] = sin(((float) i) / 12) * amplitude;
+		}
+
+
+		if ((err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0))
+				< 0) {
+			printf("Playback open error: %s\n", snd_strerror(err));
+			exit(EXIT_FAILURE);
+		}
+
+		if ((err = snd_pcm_set_params(handle, SND_PCM_FORMAT_S16,
+				SND_PCM_ACCESS_RW_INTERLEAVED, 1, 48000, 1, 50000)) < 0) { /* 0.5sec */
+			printf("Playback open error: %s\n", snd_strerror(err));
+			exit(EXIT_FAILURE);
+		}
+
+		for (int i = 0; i < 5; i++) {
+
+			frames = snd_pcm_writei(handle, bufferDit, sizeof(bufferDit) / 2);
+
+			if (frames < 0)
+				frames = snd_pcm_recover(handle, frames, 0);
+			if (frames < 0) {
+				printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+				break;
+			}
+
+			if (frames > 0 && frames < (long) sizeof(bufferDit) / 2)
+				printf("Short write (expected %li, wrote %li)\n",
+						(long) sizeof(bufferDit) / 2, frames);
+
+			// ---------------------------------------------------------
+
+			frames = snd_pcm_writei(handle, bufferDitDashPause, sizeof(bufferDitDashPause) / 2);
+
+			if (frames < 0)
+				frames = snd_pcm_recover(handle, frames, 0);
+			if (frames < 0) {
+				printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+				break;
+			}
+
+			if (frames > 0 && frames < (long) sizeof(bufferDitDashPause) / 2)
+				printf("Short write (expected %li, wrote %li)\n",
+						(long) sizeof(bufferDitDashPause) / 2, frames);
+
+		}
+
+		snd_pcm_close(handle);
+
 	}
 };
 
@@ -136,7 +204,7 @@ int main(void) {
 
 	mt->start();
 
-	//mt->wait();
+	mt->wait();
 
 	return EXIT_SUCCESS;
 }
