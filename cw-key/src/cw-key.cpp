@@ -11,6 +11,8 @@
 #include <map>
 #include <memory>
 #include <pthread.h>
+ #include <alsa/asoundlib.h>
+ #include <math.h>
 using namespace std;
 
 /**
@@ -45,14 +47,42 @@ typedef std::auto_ptr<Thread> ThreadPtr;
 
 // Morse Thread -----------------------------------------------------------------------------------------------------------------------
 
+const int ditLong = 1;
+const int dashLong = 3;
+
+const int ditDashLong = 1;
+const int charLong = 4;
+const int wordLong = 7;
+
+char* device = (char*) "default"; /* playback device */
+snd_output_t *output = NULL;
+
 class MorseThread: public Thread {
 private:
 
 	map<int, char*> m;
+	unsigned short bufferDit[16 * 1024 * ditLong]; /* dit data */
+	unsigned short bufferDash[16 * 1024 * dashLong]; /* dash data */
+
+	unsigned short bufferDitDashPause[16 * 1024 * ditDashLong];
+	unsigned short bufferCharPause[16 * 1024 * charLong];
+	unsigned short bufferWordPause[16 * 1024 * wordLong];
+
+
+	void setAll0(unsigned short b[]){
+		for(unsigned int i = 0; i < sizeof(b)/ 2; i++){
+			b[i] = 0;
+		}
+	}
 
 public:
 
 	MorseThread() {
+		setAll0(bufferDitDashPause);
+		setAll0(bufferCharPause);
+		setAll0(bufferWordPause);
+
+
 		m[2] = (char*) ".----";
 		m[3] = (char*) "..---";
 		m[4] = (char*) "...--";
@@ -63,7 +93,6 @@ public:
 		m[9] = (char*) "---..";
 		m[10] = (char*) "----.";
 		m[11] = (char*) "-----";
-
 	}
 
 	void run() {
