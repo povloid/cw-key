@@ -58,12 +58,14 @@ typedef std::auto_ptr<Thread> ThreadPtr;
 
 // Morse Thread -----------------------------------------------------------------------------------------------------------------------
 
-const int ditLong = 1;
-const int dashLong = 4;
+const int speed = 2;
 
-const int ditDashLong = 1;
-const int charLong = 4;
-const int wordLong = 7;
+const int ditLong = 1 * speed;
+const int dashLong = 4 * speed;
+
+const int ditDashLong = 1 * speed;
+const int charLong = 4 * speed;
+const int wordLong = 7 * speed;
 
 const int A16 = 1;
 const float AMPLITUDE = 10000;
@@ -116,7 +118,6 @@ public:
 		m[18] = (char*) "----.";
 		m[19] = (char*) "-----";
 
-
 		m[24] = (char*) "--.-"; // q
 		m[25] = (char*) ".--"; // w
 		m[26] = (char*) "."; // e
@@ -149,8 +150,6 @@ public:
 		m[59] = (char*) ".-.-.-"; // ,
 		m[60] = (char*) "......"; // .
 		m[61] = (char*) "-..-."; // /
-
-
 
 		// Буквы ru
 		m[1024] = (char*) ".---"; // й
@@ -258,7 +257,7 @@ public:
 				int sk = ic.skanCode;
 				int ly = ic.layout;
 
-				if(ly != 0)
+				if (ly != 0)
 					sk += 1000;
 
 				char* simbol = m[sk];
@@ -363,7 +362,7 @@ int main(void) {
 						printf("WindowID %x Key: %s\n", focusWin, szKeyString);
 
 						XkbDescPtr keyboard = XkbGetKeyboard(display,
-								XkbAllComponentsMask, XkbUseCoreKbd);
+						XkbAllComponentsMask, XkbUseCoreKbd);
 
 						XkbStateRec state;
 						XkbGetState(display, XkbUseCoreKbd, &state);
@@ -377,7 +376,8 @@ int main(void) {
 								keyboard->names->groups[group]);
 						;
 
-						std::cout<<iKeyCode<<"--"<< s1 << " - " << s2 << std::endl;
+						std::cout << iKeyCode << "--" << s1 << " - " << s2
+								<< std::endl;
 
 						InputChar ic;
 						ic.skanCode = iKeyCode;
